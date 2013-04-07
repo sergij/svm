@@ -1,18 +1,21 @@
 #ifndef SVM_EVAL
 #define SVM_EVAL
 
+#include <vector>
 #include "problem.h"
-namespace {
+
+namespace svm_learning{
 	
 	class EvalMeasures {
 	private:
-		double tp[], fp[], fn[];
-		Problem problem;
-		int predicted[];
+		std::vector<double> tp, fp, fn;
+		std::vector<int> predicted;
 		int cat_num;
 		int computed;
 	public:
-		EvalMeasures(Problem p, int[], int);
+		
+		Problem *problem;
+		EvalMeasures(Problem *p, std::vector<int>, int);
 		double accuracy();
 	};
 }

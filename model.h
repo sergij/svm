@@ -2,13 +2,14 @@
 #define SVM_MODEL
 
 #include <string>
-#include <kernel_params>
+#include <vector>
+#include "kernel_params.h"
 
 namespace svm_learning {
 	
 	class Model {
 	public:
-		double alpha[];
+		std::vector<double> alpha;
 		double b;
 		KernelParams params;
 		void save_model(std::string);

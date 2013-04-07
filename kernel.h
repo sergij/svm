@@ -1,13 +1,14 @@
 #ifndef SVM_KERNEL
 #define SVM_KERNEL
 
-#include "feature_node"
+#include <vector>
+#include "feature_node.h"
 
 namespace svm_learning {
 	
 	class Kernel {
 	public:
-		static double euclidean_dist2(FeatureNode [], FeatureNode[]);
+		static double euclidean_dist2(std::vector<FeatureNode>, std::vector<FeatureNode>);
 		static double dot_product(FeatureNode [], FeatureNode[]);
 		static double k_linear(FeatureNode [], FeatureNode []);
 		static double k_poly(FeatureNode [], FeatureNode[], double, double, double);

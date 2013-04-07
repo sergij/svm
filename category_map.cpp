@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include "category_map.h"
 
 namespace svm_learning {
 	
@@ -10,17 +11,17 @@ namespace svm_learning {
 	}
 
 	template <class T>
-	CategoryMap::size() {
+	size_t CategoryMap<T>::size() {
 		return old_new.size();
 	}
 	
 	template <class T>
-	CategoryMap<T>::is_empty(){
+	bool CategoryMap<T>::is_empty(){
 		return old_new.is_empty();
 	}
 	
 	template <class T>
-	CategoryMap<T>::add_category(T cat) {
+	void CategoryMap<T>::add_category(T cat) {
 		if(!old_new[cat]) {
 			this.last_index ++;
 			this.old_new[cat] = last_index;
@@ -29,7 +30,7 @@ namespace svm_learning {
 	}
 
 	template <class T>
-	T CategoryMap<class T>::get_old_category(int cat) {
+	T CategoryMap<T>::get_old_category(int cat) {
 		return new_old[cat];
 	}
 	

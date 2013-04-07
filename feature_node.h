@@ -3,10 +3,10 @@
 
 namespace svm_learning {
 	class FeatureNode {
-		int index;
-		double value;
 	public:
 		FeatureNode(int, double);
+		int index;
+		double value;
 	};
 }
 #endif

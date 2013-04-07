@@ -1,24 +1,24 @@
 #include <vector>
-#include "feature_node"
+#include "feature_node.h"
+#include "kernel.h"
 
 namespace svm_learning {
 	
-	Kernel {
-	static double
+	double
 	Kernel::euclidean_dist2(
-		std::vector<FeatureNode> x, std::vector<FeatureNode> y
+		std::vector<FeatureNode> x, std::vector<FeatureNode> z
 	) {
 		double sum=0;
 		int i,j;
 		size_t x_size = x.size();
 		size_t z_size = z.size();
-		for (i=0,j=0; x!=null && z!=null && i<x_size && j<z_size;) {
+		for (i=0, j=0; i < x_size && j < z_size;) {
 			if (x[i].index < z[j].index) {
-				sum+=x[i].value*x[i].value;
+				sum += x[i].value * x[i].value;
 				i++;
 			}
 			else if (z[j].index<x[i].index) {
-				sum+=z[j].value*z[j].value;
+				sum += z[j].value * z[j].value;
 				j++;
 			}
 			else {
@@ -27,11 +27,11 @@ namespace svm_learning {
 				j++;
 			}
 		}
-		for (;x!=null && i<x.length;i++) {
+		for (;x_size && i < x_size; i++) {
 			sum+=x[i].value*x[i].value;
 		}
-		for (;z!=null && j<z.length;j++) {
-			sum+=z[j].value*z[j].value;
+		for (;z_size && j<z_size; j++) {
+			sum += z[j].value * z[j].value;
 		}
 		return sum;
 	}
