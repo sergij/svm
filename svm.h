@@ -32,7 +32,7 @@ class SVM {
         double compute_param_L(int y_i, int y_j);
         double compute_param_H(int y_i, int y_j);
         double compute_param_bias(double a_i, double a_j, int y_i, int y_j, double kii, double k_jj, double k_ij);
-        double kernel(FeatureNode [], FeatureNode[]);
+        double kernel(std::vector<FeatureNode>, std::vector<FeatureNode>);
         double kernel(int i, int j);
 
     public:
@@ -43,7 +43,7 @@ class SVM {
         Model model;
 
         SVM();
-        int * svm_test(Problem);
+        std::vector<int> svm_test(Problem);
         void train(Problem);
         void train(Problem, KernelParams, int);
         double svm_test_one(FeatureNode);
