@@ -13,7 +13,7 @@ namespace svm_learning {
 			this->b = b;
 			this->c = c;
 		}
-		KernelParams():a(1), b(1), c(1), kernel(1){};
+		KernelParams():kernel(1), a(1), b(1), c(1){};
 	};
 }
 #endif

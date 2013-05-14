@@ -2,10 +2,13 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
+#include <iostream>
 
 #include "model.h"
 #include "problem.h"
 #include "kernel_params.h"
+#include "kernels.h"
 #include "svm.h"
 
 namespace svm_learning {
@@ -15,24 +18,14 @@ namespace svm_learning {
 
         tol = 10e-3;
         tol2 = 10e-5;
-
-        tol3 = 10e-3;
-        tol4 = 10e-5;
-    
-        maxpass = 10;
-    };
-    void SVM::train(Problem train) {
-        KernelParams *p = new KernelParams();
-        train(train, p);
     }
 
-    void SVM::train(Problem train, KernelParams p) {
+	void SVM::train(Problem train) {
+        KernelParams p = KernelParams();
         smo(train, p);
     }
 
     void SVM::smo(Problem train, KernelParams p) {
-        int num_changes = 0;
-        int examine_all = 1;
         model = Model();
         model.alpha = std::vector<double>(train.l, 0);
         model.b = 0;
@@ -42,10 +35,14 @@ namespace svm_learning {
         model.l = train.l;
         model.n = train.n;
 
-        std::vector<double> E = std::vector<double>(model.l, 0.0);
+        E = std::vector<double>(model.l, 0.0);
         for(int i=0; i<model.l; i++) {
             E[i] = svm_test_one(model.x[i]) - model.y[i];
         }
+
+		int num_changes = 0;
+        int examine_all = 1;
+
         while (num_changes > 0 || examine_all == 1) {
             num_changes = 0;
             if(examine_all == 1) {
@@ -55,11 +52,12 @@ namespace svm_learning {
             }
             else {
                 for (int i=0;i<model.l; i++) {
-                    if (model.alpha[i] >= 0 && model.alpha[i] <= 0) {
+                    if (model.alpha[i] == 0) {
                         num_changes += psmo_examine_example(i);
                     }
                 }
             }
+			//std::cout << "Number of changes: " << num_changes << std::endl;
             if (examine_all == 1)
                 examine_all = 0;
             else if (num_changes == 0)
@@ -121,7 +119,7 @@ namespace svm_learning {
         aj_old = model.alpha[j];
         Ej = E[j];
         double rj = Ej * yj;
-        if ((rj<-tol && aj_old<C) || (rj>tol && aj_old > 0)) {
+        if ((rj < -tol && aj_old<C) || (rj>tol && aj_old > 0)) {
             bool exists = false;
             for(int k=0;k<model.l; k++) {
                 if(model.alpha[k]>0 && model.alpha[k]<C) {
@@ -142,7 +140,7 @@ namespace svm_learning {
                     return 1;
             }
 
-            randpos = (int)floor(rand() * model.l);
+            randpos = rand() % model.l;
             int a_size = model.alpha.size();
             for (int k=0; k<a_size; k++) {
                 i = (randpos + k) % model.l;
@@ -171,18 +169,18 @@ namespace svm_learning {
     double SVM::compute_param_L(int yi, int yj) {
         double L = 0;
         if (yi != yj) {
-            L = max(0, aj_old - ai_old);
+            L = std::max(0., aj_old - ai_old);
         } else {
-            L = max(0, ai_old + aj_old - C);
+            L = std::max(0., ai_old + aj_old - C);
         }
         return L;
     }
     double SVM::compute_param_H(int yi, int yj) {
         double H = 0;
         if(yi != yj) {
-            H = min(C, aj_old + C - ai_old);
+            H = std::min(C, aj_old + C - ai_old);
         } else {
-            H = min(C, ai_old + aj_old);
+            H = std::min(C, ai_old + aj_old);
         }
         return H;
     }
@@ -202,57 +200,55 @@ namespace svm_learning {
         else
             model.b = (b1+b2)/2.;
     }
-    std::vector<int> SVM::svm_test(Problem test) {
+    std::vector<int> SVM::test(Problem test) {
         std::vector<int> pred = std::vector<int>(test.l, 0);
         for( int i=0;i<test.l; i++) {
             pred[i] = (svm_test_one(test.x[i])<0?-1:1);
         }
         return pred;
     }
-    double SVM::svm_test_one(std::vector<FeatureNode> x) {
+    double SVM::svm_test_one(std::vector<FeatureNode*> x) {
         double f = 0.;
         for(int i=0;i<model.l; i++) {
             f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
         }
         return f + model.b;
     }
-    double SVM::kernel(std::vector<FeatureNode> x,
-                       std::vector<FeatureNode> z) {
+    double SVM::kernel(std::vector<FeatureNode*> x,
+                       std::vector<FeatureNode*> z) {
         double ret = 0;
+		Kernel ker = Kernel();
         switch (model.params.kernel) {
-        case 0:
-            break;
         case 1:
-            ret = Kernel.k_linear(x, z);
+            ret = ker.k_linear(x, z);
             break;
         case 2:
-            ret = Kernel.k_poly(x, z, model.params.a, model.params.b, model.params.c);
+            ret = ker.k_poly(x, z, model.params.a, model.params.b, model.params.c);
             break;
         case 3:
-            ret = Kernel.k_gaussian(x, z, model.params.a);
+            ret = ker.k_gaussian(x, z, model.params.a);
             break;
         case 4:
-            ret = Kernel.k_tanh(x, z, model.params.a, model.params.b);
+            ret = ker.k_tanh(x, z, model.params.a, model.params.b);
             break;
         }
         return ret;
     }
     double SVM::kernel(int i, int j) {
         double ret = 0;
+		Kernel ker = Kernel();
         switch (model.params.kernel) {
-        case 0: //user defined
+        case 1:
+            ret = ker.k_linear(model.x[i], model.x[j]);
             break;
-        case 1: //linear
-            ret = Kernel.k_linear(model.x[i], model.x[j]);
+        case 2:
+            ret = ker.k_poly(model.x[i], model.x[j], model.params.a, model.params.b, model.params.c);
             break;
-        case 2: //polynomial
-            ret = Kernel.k_poly(model.x[i], model.x[j], model.params.a, model.params.b, model.params.c);
+        case 3:
+            ret = ker.k_gaussian(model.x[i], model.x[j], model.params.a);
             break;
-        case 3: //gaussian
-            ret = Kernel.k_gaussian(model.x[i], model.x[j], model.params.a);
-            break;
-        case 4: //tanh
-            ret = Kernel.k_tanh(model.x[i], model.x[j], model.params.a, model.params.b);
+        case 4:
+            ret = ker.k_tanh(model.x[i], model.x[j], model.params.a, model.params.b);
             break;
         }
         return ret;

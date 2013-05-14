@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 #include "category_map.h"
 #include "feature_node.h"
 
@@ -14,10 +15,10 @@ namespace svm_learning {
 		int l;
 		int n;
 		std::vector<int> y;
-		std::vector<std::vector<FeatureNode> > x;
-		CategoryMap<int> cat_map;
-		void load_binary_problem(std::string);
+		std::vector<std::vector<FeatureNode*> > x;
+		CategoryMap cat_map;
 		std::vector<FeatureNode*> parse_row(std::vector<std::string>);
+		void load_data(char*);
 	};
 }
 #endif
