@@ -11,17 +11,24 @@ int main (int argc, char *argv[]) {
         std::cerr << "Error while starting: no training or test file given";
         return 0;
     }
+    clock_t start, end;
     SVM s;
     Problem train;
+    Problem test;
+
+    start = clock();
     train.load_data(argv[1]);
-    clock_t start = clock();
+    test.load_data(argv[2]);
+    end = clock();
+    std::cout << "Time taken for loading data: " << ((double)(end-start)/(double)CLOCKS_PER_SEC)<< "s\n";
+
+
+    start = clock();
     s.train(train);
-    clock_t end = clock();
+    end = clock();
     /*Time consuming code*/
     std::cout << "Time taken for learning: " << ((double)(end-start)/(double)CLOCKS_PER_SEC)<< "s\n";
 
-    Problem test;
-    test.load_data(argv[2]);
     start = clock();
     std::vector<int> r = s.test(test);
     end = clock();
