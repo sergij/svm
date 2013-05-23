@@ -95,8 +95,10 @@ namespace svm_learning {
             else if (lobj < (hobj - tol)) aj = H;
             else aj = aj_old;
         }
-        if (aj < tol2) aj = 0;
-        else if (aj > (C - tol2)) aj = C;
+        if (aj < tol2)
+            aj = 0;
+        else if (aj > (C - tol2))
+            aj = C;
 
         if(fabs(aj - aj_old) < tol * (aj + aj_old + tol))
             return 0;

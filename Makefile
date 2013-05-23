@@ -8,14 +8,14 @@
 
 ####### Compiler, tools and options
 
-CC            = gcc
-CXX           = g++
+CC            = icc
+CXX           = icc 
 # DEFINES       = -DQT_WEBKIT
-CFLAGS        = -pipe -std=c++0x -O2 -Wall -W $(DEFINES)
-CXXFLAGS      = -pipe -std=c++0x -O2 -Wall -W $(DEFINES)
+CFLAGS        = -ltbb -std=c++0x -O2 -Wall -W $(DEFINES)
+CXXFLAGS      = -ltbb -std=c++0x -O2 -Wall -W $(DEFINES)
 # INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I../SVMLearn -I../SVMLearn -I.
-LINK          = g++
-LFLAGS        = -Wl,-O1
+LINK          = icc 
+LFLAGS        = -Wl,-O1 -ltbb
 LIBS          = $(SUBLIBS)    
 AR            = ar cqs
 RANLIB        = 

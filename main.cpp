@@ -1,12 +1,30 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+
 #include "problem.h"
 #include "svm.h"
 #include "eval_measures.h"
+#include "tbb/tbb.h"
+#include "tbb/task_scheduler_init.h"
 
 using namespace svm_learning;
+
+float Foo(float a) {
+    return a * a;
+}
+
+void ParallelApplyFoo( float* a, size_t n ) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0,n),
+        [=](const tbb::blocked_range<size_t>& r) {
+            for(size_t i=r.begin(); i!=r.end(); ++i)
+                Foo(a[i]);
+        }
+    );
+}
+
 int main (int argc, char *argv[]) {
+    
     if (argc < 3) {
         std::cerr << "Error while starting: no training or test file given";
         return 0;
