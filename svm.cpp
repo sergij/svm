@@ -43,15 +43,16 @@ namespace svm_learning {
 		int num_changes = 0;
         int examine_all = 1;
 
+        int model_l = model.l;
         while (num_changes > 0 || examine_all == 1) {
             num_changes = 0;
             if(examine_all == 1) {
-                for(int i=0;i<model.l; i++) {
+                for(int i=0;i<model_l; i++) {
                     num_changes += psmo_examine_example(i);
                 }
             }
             else {
-                for (int i=0;i<model.l; i++) {
+                for (int i=0;i<model_l; i++) {
                     if (model.alpha[i] == 0) {
                         num_changes += psmo_examine_example(i);
                     }

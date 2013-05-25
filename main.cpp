@@ -18,7 +18,7 @@ void ParallelApplyFoo( float* a, size_t n ) {
     tbb::parallel_for(tbb::blocked_range<size_t>(0,n),
         [=](const tbb::blocked_range<size_t>& r) {
             for(size_t i=r.begin(); i!=r.end(); ++i)
-                Foo(a[i]);
+                a[i] = Foo(a[i]);
         }
     );
 }
@@ -29,6 +29,14 @@ int main (int argc, char *argv[]) {
         std::cerr << "Error while starting: no training or test file given";
         return 0;
     }
+    tbb::task_scheduler_init init(4);
+    // float a[] = {1., 1.2, 1.2, 1.4, 12, 14, 25};
+    // ParallelApplyFoo(a, 7);
+    // for(int i=0;i<7;i++) {
+    //     std::cout << a[i] << ' ';
+    // }
+    // std::cout << std::endl;
+
     clock_t start, end;
     SVM s;
     Problem train;
