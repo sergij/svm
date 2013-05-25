@@ -210,13 +210,13 @@ namespace svm_learning {
         }
         return pred;
     }
-    double SVM::svm_test_one(std::vector<FeatureNode*> x) {
-        double f = 0.;
-        for(int i=0;i<model.l; i++) {
-            f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
-        }
-        return f + model.b;
-    }
+    // double SVM::svm_test_one(std::vector<FeatureNode*> x) {
+    //     double f = 0.;
+    //     for(int i=0;i<model.l; i++) {
+    //         f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
+    //     }
+    //     return f + model.b;
+    // }
     double SVM::kernel(std::vector<FeatureNode*> x,
                        std::vector<FeatureNode*> z) {
         double ret = 0;

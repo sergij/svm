@@ -5,8 +5,9 @@
 #include "problem.h"
 #include "svm.h"
 #include "eval_measures.h"
-#include "tbb/tbb.h"
-#include "tbb/task_scheduler_init.h"
+
+#include <tbb/tick_count.h>
+
 
 using namespace svm_learning;
 
@@ -48,12 +49,12 @@ int main (int argc, char *argv[]) {
     end = clock();
     std::cout << "Time taken for loading data: " << ((double)(end-start)/(double)CLOCKS_PER_SEC)<< "s\n";
 
-
-    start = clock();
+    tbb::tick_count time_s, time_e;
+    time_s = tbb::tick_count::now();
     s.train(train);
-    end = clock();
+    time_e = tbb::tick_count::now();
     /*Time consuming code*/
-    std::cout << "Time taken for learning: " << ((double)(end-start)/(double)CLOCKS_PER_SEC)<< "s\n";
+    std::cout << "Time taken for learning: " << (double) (time_e - time_s).seconds() << "s\n";
 
     start = clock();
     std::vector<int> r = s.test(test);

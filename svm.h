@@ -1,11 +1,19 @@
 #ifndef SVM_L
 #define SVM_L
 
+#define n_threads 4
+
 #include <vector>
 #include "model.h"
 #include "kernel_params.h"
 #include "feature_node.h"
 #include "problem.h"
+
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+#include <tbb/parallel_reduce.h>
+#include <tbb/task_scheduler_init.h>
+#include <tbb/tick_count.h>
 
 namespace svm_learning {
     
@@ -32,8 +40,55 @@ class SVM {
         double kernel(std::vector<FeatureNode*>, std::vector<FeatureNode*>);
         double kernel(int i, int j);
 
-        double svm_test_one(std::vector<FeatureNode*>);
+        double svm_tester(int i, std::vector<FeatureNode*>& x) {
+            return model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
+        }
 
+        double parallel_svm_test_one(std::vector<FeatureNode*>& x) {
+            return 0.0;
+        }
+
+        double svm_test_one(std::vector<FeatureNode*>& x) {
+            // double f = 0;
+            // for(int i=0;i<model.l; i++) {
+            //     // f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
+            //     f += svm_tester(i, x);
+            // }
+            // return f + model.b;
+
+            tbb::task_scheduler_init init(n_threads);
+
+            TestReducer agregate(this, x);
+            tbb::parallel_reduce( 
+                tbb::blocked_range<size_t>(0, model.l, 4),
+                agregate);
+
+            return agregate.value + model.b;
+
+        }
+    
+        struct TestReducer {
+                float value;
+                SVM* w_;
+                std::vector<FeatureNode*>& x_;
+                TestReducer(SVM* w, std::vector<FeatureNode*>& x) : value(0.), w_(w), x_(x){}
+                TestReducer(TestReducer& s, tbb::split):
+                    value(0.0),
+                    x_(s.x_),
+                    w_(s.w_) {}
+    
+            void operator() (const tbb::blocked_range<size_t>& r) {
+                float temp = value;
+                for (size_t i = r.begin(); i!=r.end(); ++i) {
+                    temp = w_->svm_tester(i, x_);
+                    // temp += w_->runComputeHeavyOperation(i); 
+                }
+                value = temp;
+            }
+            void join(TestReducer& rhs) {
+                value += rhs.value;
+            }
+        };
     public:
         Model model;
 
