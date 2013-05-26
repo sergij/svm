@@ -30,7 +30,7 @@ int main (int argc, char *argv[]) {
         std::cerr << "Error while starting: no training or test file given";
         return 0;
     }
-    tbb::task_scheduler_init init(4);
+    tbb::task_scheduler_init init(3);
     // float a[] = {1., 1.2, 1.2, 1.4, 12, 14, 25};
     // ParallelApplyFoo(a, 7);
     // for(int i=0;i<7;i++) {

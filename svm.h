@@ -47,22 +47,30 @@ class SVM {
         double parallel_svm_test_one(std::vector<FeatureNode*>& x) {
             return 0.0;
         }
+        double sequentual_test_one(std::vector<FeatureNode*>& x) {
+
+            double f = 0;
+            for(int i=0;i<model.l; i++) {
+                // f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
+                f += svm_tester(i, x);
+            }
+            return f + model.b;
+        }
 
         double svm_test_one(std::vector<FeatureNode*>& x) {
-            // double f = 0;
-            // for(int i=0;i<model.l; i++) {
-            //     // f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
-            //     f += svm_tester(i, x);
-            // }
-            // return f + model.b;
-
-            tbb::task_scheduler_init init(n_threads);
 
             TestReducer agregate(this, x);
             tbb::parallel_reduce( 
-                tbb::blocked_range<size_t>(0, model.l, 4),
+                tbb::blocked_range<size_t>(0, model.l, 6),
                 agregate);
 
+            // if (agregate.value != f) 
+            // {
+            //     std::cout << agregate.value << std::endl;
+            // }
+            // else {
+            //     std::cout << "OK!\n";
+            // }
             return agregate.value + model.b;
 
         }
@@ -71,7 +79,7 @@ class SVM {
                 float value;
                 SVM* w_;
                 std::vector<FeatureNode*>& x_;
-                TestReducer(SVM* w, std::vector<FeatureNode*>& x) : value(0.), w_(w), x_(x){}
+                TestReducer(SVM* w, std::vector<FeatureNode*>& x) : value(0.0), w_(w), x_(x){}
                 TestReducer(TestReducer& s, tbb::split):
                     value(0.0),
                     x_(s.x_),

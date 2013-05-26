@@ -206,7 +206,7 @@ namespace svm_learning {
     std::vector<int> SVM::test(Problem test) {
         std::vector<int> pred = std::vector<int>(test.l, 0);
         for( int i=0;i<test.l; i++) {
-            pred[i] = (svm_test_one(test.x[i])<0?-1:1);
+            pred[i] = (sequentual_test_one(test.x[i])<0?-1:1);
         }
         return pred;
     }
