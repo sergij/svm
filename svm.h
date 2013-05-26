@@ -61,16 +61,9 @@ class SVM {
 
             TestReducer agregate(this, x);
             tbb::parallel_reduce( 
-                tbb::blocked_range<size_t>(0, model.l, 6),
+                tbb::blocked_range<size_t>(0, model.l, 4),
                 agregate);
 
-            // if (agregate.value != f) 
-            // {
-            //     std::cout << agregate.value << std::endl;
-            // }
-            // else {
-            //     std::cout << "OK!\n";
-            // }
             return agregate.value + model.b;
 
         }
