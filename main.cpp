@@ -18,7 +18,7 @@ int main (int argc, char *argv[]) {
         std::cerr << "Error while starting: no training or test file given";
         return 0;
     }
-    tbb::task_scheduler_init init(3);
+    // tbb::task_scheduler_init init(3);
 
     clock_t start, end;
     SVM s;

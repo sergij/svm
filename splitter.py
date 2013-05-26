@@ -5,7 +5,7 @@ def split_file(input_file, train_file, test_file):
     in_file = open(input_file, 'r')
     train = open(train_file, 'w')
     test = open(test_file, 'w')
-    [train.write(line) if random.randint(0, 3)
+    [train.write(line) if random.randint(0, 5)
         else test.write(line) for line in in_file]
     test.close()
     train.close()

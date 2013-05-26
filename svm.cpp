@@ -11,6 +11,12 @@
 #include "kernels.h"
 #include "svm.h"
 
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+#include <tbb/parallel_reduce.h>
+#include <tbb/task_scheduler_init.h>
+#include <tbb/tick_count.h>
+
 namespace svm_learning {
     
 	SVM::SVM(){
@@ -37,10 +43,19 @@ namespace svm_learning {
 
         int model_l = model.l;
         E = std::vector<double>(model_l, 0.0);
-        std::cout << model_l << std::endl;
-        for(int i=0; i<model_l; i++) {
-            E[i] = svm_test_one(model.x[i]) - model.y[i];
-        }
+
+        
+        tbb::tick_count time_s, time_e;
+        time_s = tbb::tick_count::now();
+        ParallelVectorize parallel_calculation(this, &model);
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, model_l, model_l >> 1),
+            parallel_calculation);
+        // for(int i=0; i<model_l; i++) {
+        //     E[i] = svm_test_one(model.x[i]) - model.y[i];
+        // }
+        time_e = tbb::tick_count::now();
+        std::cout << "First E_i calculation: " << (double)(time_e - time_s).seconds() << "s\n";
 
         int num_changes = 0;
         int examine_all = 1;

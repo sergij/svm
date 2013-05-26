@@ -1,0 +1,10 @@
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o main.o main.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o svm.o svm.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o problem.o problem.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o model.o model.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o kernels.o kernels.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o kernel_params.o kernel_params.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o feature_node.o feature_node.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o eval_measures.o eval_measures.cpp
+icc  -c -ltbb -std=c++0x -O2 -Wall -W   -o category_map.o category_map.cpp
+icc  -Wl,-O1 -ltbb -o SVMLearn main.o svm.o problem.o model.o kernels.o kernel_params.o feature_node.o eval_measures.o category_map.o      

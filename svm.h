@@ -54,7 +54,7 @@ class SVM {
 
             TestReducer agregate(this, x);
             tbb::parallel_reduce( 
-                tbb::blocked_range<size_t>(0, model.l, model.l / 2),
+                tbb::blocked_range<size_t>(0, model.l, (model.l >> 1) + 1),
                 agregate);
 
             return agregate.value + model.b;
@@ -71,7 +71,7 @@ class SVM {
                     w_(s.w_), v(s.v) {}
     
             void operator() (const tbb::blocked_range<size_t>& r) {
-                int temp = value;
+                double temp = value;
                 const size_t end = r.end();
                 for (size_t i = r.begin(); i!=end; ++i) {
                     temp += (w_->model.alpha[i] * w_->model.y[i] * w_->kernel(v, w_->model.x[i]));
@@ -83,6 +83,18 @@ class SVM {
             }
             void join(TestReducer& rhs) {
                 value += rhs.value;
+            }
+        };
+
+        struct ParallelVectorize{
+            SVM* svm;
+            Model* model;
+            ParallelVectorize(SVM* s, Model* m): svm(s), model(m) {}
+            void operator() (const tbb::blocked_range<size_t>& r) const {
+                const size_t end = r.end();
+                for(size_t i = r.begin(); i!=end; ++i) {
+                    svm->E[i] = svm->test_one(model->x[i]) - model->y[i];
+                }
             }
         };
     public:
