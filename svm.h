@@ -40,33 +40,27 @@ class SVM {
         double kernel(std::vector<FeatureNode*>, std::vector<FeatureNode*>);
         double kernel(int i, int j);
 
-        double svm_tester(int i, std::vector<FeatureNode*>& x) {
-            return model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
-        }
-
-        double parallel_svm_test_one(std::vector<FeatureNode*>& x) {
-            return 0.0;
-        }
-        double sequentual_test_one(std::vector<FeatureNode*>& x) {
+        double svm_test_one(std::vector<FeatureNode*>& x) {
 
             double f = 0;
             for(int i=0;i<model.l; i++) {
                 // f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
-                f += svm_tester(i, x);
+                f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
             }
             return f + model.b;
         }
 
-        double svm_test_one(std::vector<FeatureNode*>& x) {
+        // double svm_test_one(std::vector<FeatureNode*>& x) {
+        //     std::cout << model.l << ' ';
 
-            TestReducer agregate(this, x);
-            tbb::parallel_reduce( 
-                tbb::blocked_range<size_t>(0, model.l, 4),
-                agregate);
+        //     TestReducer agregate(this, x);
+        //     tbb::parallel_reduce( 
+        //         tbb::blocked_range<size_t>(0, model.l, 4),
+        //         agregate);
 
-            return agregate.value + model.b;
+        //     return agregate.value + model.b;
 
-        }
+        // }
     
         struct TestReducer {
                 float value;
@@ -81,7 +75,7 @@ class SVM {
             void operator() (const tbb::blocked_range<size_t>& r) {
                 float temp = value;
                 for (size_t i = r.begin(); i!=r.end(); ++i) {
-                    temp = w_->svm_tester(i, x_);
+                    // temp = w_->svm_tester(i, x_);
                     // temp += w_->runComputeHeavyOperation(i); 
                 }
                 value = temp;

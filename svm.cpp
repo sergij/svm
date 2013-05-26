@@ -116,6 +116,7 @@ namespace svm_learning {
     }
 
     int SVM::psmo_examine_example(int j) {
+        // std::cout << '.';
         int i = 0;
         int randpos;
         int yj = model.y[j];
@@ -206,7 +207,7 @@ namespace svm_learning {
     std::vector<int> SVM::test(Problem test) {
         std::vector<int> pred = std::vector<int>(test.l, 0);
         for( int i=0;i<test.l; i++) {
-            pred[i] = (sequentual_test_one(test.x[i])<0?-1:1);
+            pred[i] = (svm_test_one(test.x[i])<0?-1:1);
         }
         return pred;
     }

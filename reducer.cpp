@@ -1,6 +1,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <cstdlib>
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -9,35 +10,34 @@
 #include <tbb/tick_count.h>
 
 #define N 4 * 10e6
-#define nThreads 3
+#define nThreads 10
 int grain_size;
+int parts;
 
 class Worker 
 {
 public:
     Worker() {
-        mpl.resize(N);
+        // mpl.resize(N);
+        mpl = new float[int(N)];
         for(int i=0;i<N;i++) 
             mpl[i] = (0.5 * i);
         std::cout << "done\n";
     }
-    float runComputeHeavyOperation(size_t i) {
-        return sqrt(this->mpl[i]);
-    }
     float linear() {
         float suma = 0;
         for(int i=0; i<N; i++) {
-            suma += sqrt(this->mpl[i]);
+            suma += sqrt(this->mpl[i]) / 100.;
         }
         return suma;
     }
 
     float computeHeavyMethod() {
-        tbb::task_scheduler_init init(3);
-        TbbExecutor tbbExec(this);
+        tbb::task_scheduler_init init(nThreads);
+        TbbExecutor tbbExec;
 
         tbb::parallel_reduce( 
-            tbb::blocked_range<size_t>(0, N),
+            tbb::blocked_range<float*>(mpl, mpl + size_t(N), int(N / parts)),
             tbbExec);
 
         return tbbExec.value;
@@ -45,20 +45,20 @@ public:
 
 
 private:
-    std::vector<float> mpl;
+    float* mpl;
 
     struct TbbExecutor 
     {
         float value;
         Worker* w_;
-        TbbExecutor(Worker* w) : value(0.), w_(w) {}
-        TbbExecutor(TbbExecutor& s, tbb::split) {value=0.0; w_ = s.w_;}
+        TbbExecutor() : value(0.) {}
+        TbbExecutor(TbbExecutor& s, tbb::split): value(0.0) {}
 
-        void operator() (const tbb::blocked_range<size_t>& r) {
+        void operator() (const tbb::blocked_range<float*>& r) {
+            std::cout << '.';
             float temp = value;
-            const size_t end = r.end();
-            for (size_t i = r.begin(); i!=end; ++i) {
-                temp += w_->runComputeHeavyOperation(i); 
+            for (float* i = r.begin(); i!=r.end(); ++i) {
+                temp += sqrt(*i) / 100.; 
             }
             value = temp;
         }
@@ -69,7 +69,9 @@ private:
 };
 
 int main(int argc, char * argv[]) {
-    grain_size = int(argv[2]);
+    parts = atoi(argv[1]);
+    std::cout << parts << std::endl;
+    grain_size = 3; // atoi(argv[2]);
     Worker w;
     std::cout << "worker created\n";
     // w.print();
