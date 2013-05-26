@@ -35,17 +35,19 @@ namespace svm_learning {
         model.l = train.l;
         model.n = train.n;
 
-        E = std::vector<double>(model.l, 0.0);
-        for(int i=0; i<model.l; i++) {
+        int model_l = model.l;
+        E = std::vector<double>(model_l, 0.0);
+        std::cout << model_l << std::endl;
+        for(int i=0; i<model_l; i++) {
             E[i] = svm_test_one(model.x[i]) - model.y[i];
         }
 
-		int num_changes = 0;
+        int num_changes = 0;
         int examine_all = 1;
 
-        int model_l = model.l;
         while (num_changes > 0 || examine_all == 1) {
             num_changes = 0;
+
             if(examine_all == 1) {
                 for(int i=0;i<model_l; i++) {
                     num_changes += psmo_examine_example(i);
@@ -58,7 +60,7 @@ namespace svm_learning {
                     }
                 }
             }
-			//std::cout << "Number of changes: " << num_changes << std::endl;
+
             if (examine_all == 1)
                 examine_all = 0;
             else if (num_changes == 0)
@@ -116,7 +118,7 @@ namespace svm_learning {
     }
 
     int SVM::psmo_examine_example(int j) {
-        // std::cout << '.';
+        if(model.alpha[j] != 0) return 0;
         int i = 0;
         int randpos;
         int yj = model.y[j];
@@ -207,7 +209,7 @@ namespace svm_learning {
     std::vector<int> SVM::test(Problem test) {
         std::vector<int> pred = std::vector<int>(test.l, 0);
         for( int i=0;i<test.l; i++) {
-            pred[i] = (svm_test_one(test.x[i])<0?-1:1);
+            pred[i] = (test_one(test.x[i])<0?-1:1);
         }
         return pred;
     }

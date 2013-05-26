@@ -40,7 +40,7 @@ class SVM {
         double kernel(std::vector<FeatureNode*>, std::vector<FeatureNode*>);
         double kernel(int i, int j);
 
-        double svm_test_one(std::vector<FeatureNode*>& x) {
+        double test_one(std::vector<FeatureNode*>& x) {
 
             double f = 0;
             for(int i=0;i<model.l; i++) {
@@ -50,31 +50,32 @@ class SVM {
             return f + model.b;
         }
 
-        // double svm_test_one(std::vector<FeatureNode*>& x) {
-        //     std::cout << model.l << ' ';
+        double svm_test_one(std::vector<FeatureNode*>& x) {
 
-        //     TestReducer agregate(this, x);
-        //     tbb::parallel_reduce( 
-        //         tbb::blocked_range<size_t>(0, model.l, 4),
-        //         agregate);
+            TestReducer agregate(this, x);
+            tbb::parallel_reduce( 
+                tbb::blocked_range<size_t>(0, model.l, model.l / 2),
+                agregate);
 
-        //     return agregate.value + model.b;
+            return agregate.value + model.b;
 
-        // }
+        }
     
         struct TestReducer {
-                float value;
+                double value;
                 SVM* w_;
-                std::vector<FeatureNode*>& x_;
-                TestReducer(SVM* w, std::vector<FeatureNode*>& x) : value(0.0), w_(w), x_(x){}
+                std::vector<FeatureNode*>& v;
+                TestReducer(SVM* w, std::vector<FeatureNode*>& x) : value(0.0), w_(w), v(x) {}
                 TestReducer(TestReducer& s, tbb::split):
                     value(0.0),
-                    x_(s.x_),
-                    w_(s.w_) {}
+                    w_(s.w_), v(s.v) {}
     
             void operator() (const tbb::blocked_range<size_t>& r) {
-                float temp = value;
-                for (size_t i = r.begin(); i!=r.end(); ++i) {
+                int temp = value;
+                const size_t end = r.end();
+                for (size_t i = r.begin(); i!=end; ++i) {
+                    temp += (w_->model.alpha[i] * w_->model.y[i] * w_->kernel(v, w_->model.x[i]));
+                    // temp += w_->psmo_examine_example(i);
                     // temp = w_->svm_tester(i, x_);
                     // temp += w_->runComputeHeavyOperation(i); 
                 }
