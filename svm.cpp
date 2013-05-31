@@ -49,11 +49,11 @@ namespace svm_learning {
         time_s = tbb::tick_count::now();
         ParallelVectorize parallel_calculation(this, &model);
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, model_l, model_l >> 1),
+            tbb::blocked_range<size_t>(0, model_l, (model_l >> 1) + 1),
             parallel_calculation);
-        // for(int i=0; i<model_l; i++) {
-        //     E[i] = svm_test_one(model.x[i]) - model.y[i];
-        // }
+       // for(int i=0; i<model_l; i++) {
+       //     E[i] = svm_test_one(model.x[i]) - model.y[i];
+       // }
         time_e = tbb::tick_count::now();
         std::cout << "First E_i calculation: " << (double)(time_e - time_s).seconds() << "s\n";
 
@@ -64,17 +64,18 @@ namespace svm_learning {
             num_changes = 0;
 
             if(examine_all == 1) {
-                for(int i=0;i<model_l; i++) {
+                for(int i = 0; i < model_l; i++) {
                     num_changes += psmo_examine_example(i);
                 }
             }
             else {
-                for (int i=0;i<model_l; i++) {
+                for (int i = 0; i < model_l; i++) {
                     if (model.alpha[i] == 0) {
                         num_changes += psmo_examine_example(i);
                     }
                 }
             }
+            std::cout << "changes: " << num_changes << std::endl;
 
             if (examine_all == 1)
                 examine_all = 0;
@@ -133,7 +134,6 @@ namespace svm_learning {
     }
 
     int SVM::psmo_examine_example(int j) {
-        if(model.alpha[j] != 0) return 0;
         int i = 0;
         int randpos;
         int yj = model.y[j];
@@ -171,6 +171,16 @@ namespace svm_learning {
         }
         return 0;
     }
+    double SVM::svm_test_one(std::vector<FeatureNode*>& x) {
+        return test_one(x);
+
+        TestReducer agregate(this, x);
+        tbb::parallel_reduce( 
+            tbb::blocked_range<size_t>(0, model.l, (model.l >> 1) + 1),
+            agregate);
+        return agregate.value + model.b;
+
+    }
 
     double SVM::smo_obj(double aj,
                         int yi,
@@ -182,8 +192,8 @@ namespace svm_learning {
                         double vj) {
         double s = yi * yj;
         double gamma = ai_old + s*aj_old;
-        double result = (gamma + (1-s)*aj - 0.5*kii*(gamma-s*aj)*(gamma-s*aj) - 0.5*kjj*aj*aj +
-                - s*kij*(gamma-s*aj)*aj - yi*(gamma-s*aj)*vi - yj*aj*vj);
+        double result = (gamma + (1 - s) * aj - 0.5 * kii * (gamma - s * aj) * (gamma - s * aj) - 0.5 * kjj * aj * aj +
+                - s * kij * (gamma - s * aj) * aj - yi * (gamma - s * aj) * vi - yj * aj * vj);
         return result;
     }
 
@@ -212,29 +222,32 @@ namespace svm_learning {
                                  double kii,
                                  double kjj,
                                  double kij) {
-        double b1 = model.b - Ei - yi*(ai-ai_old)*kii - yj*(aj-aj_old) * kij;
-        double b2 = model.b - Ej - yi*(ai-ai_old)*kij - yj*(aj-aj_old) * kjj;
-        if (0 < ai && ai<C)
+        double b1 = model.b - Ei - yi * (ai - ai_old) * kii - yj * (aj - aj_old) * kij;
+        double b2 = model.b - Ej - yi * (ai - ai_old) * kij - yj * (aj - aj_old) * kjj;
+        if (0 < ai && ai < C)
             model.b = b1;
         else if (0 < aj && aj < C)
             model.b = b2;
         else
-            model.b = (b1+b2)/2.;
+            model.b = (b1 + b2) / 2.;
     }
     std::vector<int> SVM::test(Problem test) {
         std::vector<int> pred = std::vector<int>(test.l, 0);
-        for( int i=0;i<test.l; i++) {
-            pred[i] = (test_one(test.x[i])<0?-1:1);
+        for( int i = 0; i < test.l; i++) {
+            pred[i] = (test_one(test.x[i]) < 0? -1: 1);
         }
         return pred;
     }
-    // double SVM::svm_test_one(std::vector<FeatureNode*> x) {
-    //     double f = 0.;
-    //     for(int i=0;i<model.l; i++) {
-    //         f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
-    //     }
-    //     return f + model.b;
-    // }
+
+    double SVM::test_one(std::vector<FeatureNode*>& x) {
+
+        double f = 0;
+        for(int i=0;i<model.l; i++) {
+            f += model.alpha[i] * model.y[i] * kernel(x, model.x[i]);
+        }
+        return f + model.b;
+    }
+
     double SVM::kernel(std::vector<FeatureNode*> x,
                        std::vector<FeatureNode*> z) {
         double ret = 0;
